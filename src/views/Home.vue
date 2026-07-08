@@ -49,44 +49,50 @@
       <!-- ========== HOME TAB ========== -->
       <template v-if="activeTab === 'home'">
         <!-- Continue watching -->
-        <div v-if="continueWatch.length" style="margin-bottom:24px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <h2 style="font-size:15px;font-weight:700"><span style="color:var(--c-accent)">▶</span> 继续观看</h2>
-            <router-link to="/history" style="font-size:12px;color:var(--c-muted)">查看更多</router-link>
+        <div v-if="continueWatch.length" class="section">
+          <div class="section-header">
+            <h2 class="section-title"><span style="color:var(--accent)">▶</span> 继续观看</h2>
+            <router-link to="/history" class="section-more">查看更多</router-link>
           </div>
           <div class="scroll-row">
             <div v-for="h in continueWatch" :key="h.sourceId + h.vodId" class="scroll-card" @click="goContinue(h)">
               <div class="scroll-poster">
                 <img :src="poster(h.pic)" :alt="h.name" referrerpolicy="no-referrer" @error="safeImgError" />
                 <div class="scroll-play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8,5 8,19 19,12" /></svg></div>
-                <span v-if="h.episodeName" class="scroll-badge" style="top:auto;bottom:6px;right:6px;background:linear-gradient(135deg,var(--c-accent),var(--c-accent2))">{{ h.episodeName }}</span>
+                <span v-if="h.episodeName" class="scroll-badge scroll-badge-progress">{{ h.episodeName }}</span>
               </div>
               <div class="scroll-info"><span class="scroll-name">{{ h.name }}</span></div>
             </div>
           </div>
         </div>
 
-        <!-- Toolbar -->
-        <div class="toolbar">
-          <select class="src-select" v-model="srcId" @change="onSourceChange">
-            <option v-for="s in store.enabledSources" :key="s.id" :value="s.id">{{ s.name }}</option>
-          </select>
-          <button class="btn" @click="load()" title="刷新">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          </button>
+        <!-- Source + Category Bar -->
+        <div class="source-cat-bar">
+          <div class="source-cat-left">
+            <select class="src-select" v-model="srcId" @change="onSourceChange">
+              <option v-for="s in store.enabledSources" :key="s.id" :value="s.id">{{ s.name }}</option>
+            </select>
+            <button class="refresh-btn" @click="load()" title="刷新">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            </button>
+          </div>
         </div>
 
-        <!-- Category tabs -->
-        <div class="cat-scroll">
-          <button class="cat-pill" :class="{ on: !activeCat }" @click="pickCat(null)">全部</button>
-          <template v-for="c in visibleCats" :key="c.id">
-            <button class="cat-pill" :class="{ on: activeCat === c.id }" @click="pickCat(c.id)">{{ c.name }}</button>
-          </template>
-          <button v-if="cats.length > maxCats && !showAllCats" class="cat-pill" @click="showAllCats = true">更多({{ cats.length - maxCats }}) ▾</button>
-          <button v-if="showAllCats && cats.length > maxCats" class="cat-pill" @click="showAllCats = false">收起 ▴</button>
-          <template v-if="showAllCats">
-            <button v-for="c in cats.slice(maxCats)" :key="c.id" class="cat-pill" :class="{ on: activeCat === c.id }" @click="pickCat(c.id)">{{ c.name }}</button>
-          </template>
+        <!-- Category Navigation - KVideo Style -->
+        <div class="cat-nav">
+          <div class="cat-nav-inner">
+            <button class="cat-tag" :class="{ active: !activeCat }" @click="pickCat(null)">全部</button>
+            <template v-for="c in visibleCats" :key="c.id">
+              <button class="cat-tag" :class="{ active: activeCat === c.id }" @click="pickCat(c.id)">{{ c.name }}</button>
+            </template>
+            <button v-if="cats.length > maxCats && !showAllCats" class="cat-tag cat-tag-more" @click="showAllCats = true">
+              更多 <span class="cat-count">{{ cats.length - maxCats }}</span>
+            </button>
+            <button v-if="showAllCats && cats.length > maxCats" class="cat-tag cat-tag-more" @click="showAllCats = false">收起</button>
+            <template v-if="showAllCats">
+              <button v-for="c in cats.slice(maxCats)" :key="c.id" class="cat-tag" :class="{ active: activeCat === c.id }" @click="pickCat(c.id)">{{ c.name }}</button>
+            </template>
+          </div>
         </div>
 
         <!-- Loading skeleton -->
@@ -99,23 +105,23 @@
 
         <!-- Error -->
         <div v-else-if="errorMsg" class="empty">
-          <p style="color:var(--c-red);margin-bottom:8px">{{ errorMsg }}</p>
+          <p style="color:var(--red);margin-bottom:8px">{{ errorMsg }}</p>
           <button class="btn" @click="load()">重试</button>
         </div>
 
         <!-- Video list -->
         <template v-else>
-          <!-- 热门推荐 (has score or remarks) -->
-          <div v-if="hotList.length" style="margin-bottom:24px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <h2 style="font-size:15px;font-weight:700">🔥 热门推荐</h2>
+          <!-- 热门推荐 -->
+          <div v-if="hotList.length" class="section">
+            <div class="section-header">
+              <h2 class="section-title">🔥 热门推荐</h2>
             </div>
             <div class="scroll-row">
               <div v-for="item in hotList" :key="'hot-'+item.id" class="scroll-card" @click="open(item)">
                 <div class="scroll-poster">
                   <img :src="poster(item.pic)" :alt="item.name" loading="lazy" referrerpolicy="no-referrer" @error="safeImgError" />
                   <span v-if="item.remarks" class="scroll-badge">{{ item.remarks }}</span>
-                  <span v-if="item.score" class="scroll-badge" style="left:6px;right:auto;background:var(--c-red)">{{ item.score }}分</span>
+                  <span v-if="item.score" class="scroll-badge scroll-badge-score">{{ item.score }}分</span>
                   <div class="scroll-play"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="8,5 8,19 19,12" /></svg></div>
                 </div>
                 <div class="scroll-info"><span class="scroll-name">{{ item.name }}</span><span class="scroll-meta">{{ item.year || item.type }}</span></div>
@@ -123,11 +129,11 @@
             </div>
           </div>
 
-          <!-- 最近更新 (all items) -->
-          <div style="margin-bottom:24px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <h2 style="font-size:15px;font-weight:700">✨ 最近更新</h2>
-              <span style="font-size:11px;color:var(--c-muted)">共 {{ list.length }} 部</span>
+          <!-- 最近更新 -->
+          <div class="section">
+            <div class="section-header">
+              <h2 class="section-title">✨ 最近更新</h2>
+              <span class="section-count">共 {{ list.length }} 部</span>
             </div>
             <div class="scroll-row">
               <div v-for="item in list" :key="'all-'+item.id" class="scroll-card" @click="open(item)">
@@ -146,7 +152,7 @@
           <!-- Pagination -->
           <div v-if="pageCount > 1" class="pager">
             <button class="btn" :disabled="pg <= 1" @click="pg--; load()">上一页</button>
-            <span style="font-size:12px;color:var(--c-muted);padding:0 4px">{{ pg }} / {{ pageCount }}</span>
+            <span class="pager-info">{{ pg }} / {{ pageCount }}</span>
             <button class="btn" :disabled="pg >= pageCount" @click="pg++; load()">下一页</button>
           </div>
         </template>
@@ -162,9 +168,9 @@
           <p style="margin-top:6px;font-size:12px">在影片详情页点击「收藏」按钮即可添加</p>
         </div>
         <template v-else>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h2 style="font-size:15px;font-weight:700">❤️ 我的收藏</h2>
-            <span style="font-size:11px;color:var(--c-muted)">共 {{ store.favorites.length }} 部</span>
+          <div class="section-header">
+            <h2 class="section-title">❤️ 我的收藏</h2>
+            <span class="section-count">共 {{ store.favorites.length }} 部</span>
           </div>
           <div class="fav-grid">
             <div v-for="f in store.favorites" :key="f.sourceId + f.vodId" class="fav-card" @click="goFavDetail(f)">
@@ -206,22 +212,15 @@ const pageCount = ref(1)
 const srcId = ref('')
 const activeTab = ref('home')
 const showAllCats = ref(false)
-const maxCats = 6
+const maxCats = 8
 
 const visibleCats = computed(() => cats.value.slice(0, maxCats))
-
-// Continue watching (last 5 history items)
 const continueWatch = computed(() => store.history.slice(0, 5))
 
-// Hot list: items with score or multi-episode remarks, sorted by score desc
 const hotList = computed(() => {
   return [...list.value]
     .filter(item => item.score || (item.remarks && item.remarks.match(/\d+/)))
-    .sort((a, b) => {
-      const sa = parseFloat(a.score) || 0
-      const sb = parseFloat(b.score) || 0
-      return sb - sa
-    })
+    .sort((a, b) => (parseFloat(b.score) || 0) - (parseFloat(a.score) || 0))
     .slice(0, 10)
 })
 
@@ -238,7 +237,6 @@ function removeFav(f) {
   toast('已取消收藏', 'info')
 }
 
-// Hero
 const heroList = ref([])
 const heroIdx = ref(0)
 let heroTimer = null
