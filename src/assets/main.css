@@ -1,5 +1,5 @@
 /* ================================================================
-   CloudMovie v5 — Light Theme
+   CloudMovie v5 — Light + Dark Theme
    ================================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -23,6 +23,54 @@
   --muted: #8b8da3;
   --shadow: 0 2px 12px rgba(0,0,0,.06);
   --shadow-md: 0 4px 20px rgba(0,0,0,.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --card: #1e1e35;
+    --card2: #252542;
+    --border: #2a2a4a;
+    --border2: #3a3a5a;
+    --text: #e8e8f0;
+    --text2: #b0b0c8;
+    --muted: #6a6a8a;
+    --shadow: 0 2px 12px rgba(0,0,0,.3);
+    --shadow-md: 0 4px 20px rgba(0,0,0,.4);
+  }
+  .header { background: rgba(15,15,26,.88); border-bottom-color: var(--border); }
+  .bottom-nav { background: rgba(15,15,26,.95); border-top-color: var(--border); }
+  .cat-nav { background: rgba(30,30,53,.6); border-color: rgba(42,42,74,.5); }
+  .cat-tag { background: rgba(99,102,241,.1); }
+  .cat-tag.active { background: linear-gradient(135deg, var(--accent), var(--purple)); }
+  .tab-switch { background: rgba(30,30,53,.7); border-color: rgba(42,42,74,.5); }
+  .src-select { background: rgba(30,30,53,.8); border-color: rgba(42,42,74,.6); }
+  .refresh-btn { background: rgba(30,30,53,.8); border-color: rgba(42,42,74,.6); }
+  .btn { background: rgba(30,30,53,.7); border-color: rgba(42,42,74,.5); color: var(--text); }
+  .btn:hover { background: rgba(40,40,70,.9); }
+  .scroll-badge { background: rgba(99,102,241,.85); }
+  .hero-overlay { background: linear-gradient(180deg, transparent 40%, rgba(15,15,26,.95) 100%); }
+  .player-top { background: var(--surface); border-bottom-color: var(--border); }
+  .ep-selector { background: var(--surface); border-top-color: var(--border); }
+  .player-shortcuts { background: var(--surface); border-top-color: var(--border); }
+  .drawer { background: var(--surface); border-left-color: var(--border); }
+  .drawer-mask { background: rgba(0,0,0,.5); }
+  .modal { background: var(--surface); border-color: var(--border); }
+  .confirm-box { background: var(--surface); border-color: var(--border); }
+  .overlay { background: rgba(0,0,0,.5); }
+  .search-dropdown { background: var(--surface); border-color: var(--border); }
+  .toast { background: var(--surface); border-color: var(--border); }
+  .src-item { background: var(--card); border-color: var(--border); }
+  .src-filter { background: var(--card); border-color: var(--border); }
+  .hist-item { background: var(--card); border-color: var(--border); }
+  .search-history-tag { background: var(--card); border-color: var(--border); }
+  .batch-bar { background: rgba(99,102,241,.1); border-color: rgba(99,102,241,.2); }
+  .stat-item { background: var(--card2); border-color: var(--border); }
+  .source-item { background: var(--card2); border-color: var(--border); }
+  .pager-info { background: rgba(30,30,53,.6); }
+  .scroll-badge { backdrop-filter: blur(4px); }
+  .scroll-play { background: linear-gradient(135deg, rgba(99,102,241,.5), rgba(168,85,247,.35)); }
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -689,6 +737,37 @@ button { font-family: inherit; }
   opacity: 0; transition: opacity .2s;
 }
 .history-tag-wrap:hover .search-history-del { opacity: 1; }
+
+/* Search errors */
+.search-errors {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+}
+.search-error-item {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; background: rgba(239,68,68,.06);
+  border: 1px solid rgba(239,68,68,.15); border-radius: 6px;
+  font-size: 11px; color: var(--red);
+}
+
+/* Auto-next toast */
+.auto-next-toast {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 10px;
+  font-size: 13px; box-shadow: var(--shadow-md);
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 999; white-space: nowrap;
+}
+
+/* History delete button */
+.hist-del-btn {
+  width: 24px; height: 24px; border-radius: 6px;
+  border: none; background: transparent; color: var(--muted);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .2s; opacity: 0;
+}
+.hist-item:hover .hist-del-btn { opacity: 1; }
+.hist-del-btn:hover { background: rgba(239,68,68,.1); color: var(--red); }
 
 /* ================================================================
    Responsive

@@ -45,7 +45,7 @@
       </template>
 
       <!-- No results -->
-      <template v-else-if="!groups.length">
+      <template v-else-if="!groups.length && !errors.length">
         <div class="search-empty">
           <div class="search-empty-icon">
             <svg viewBox="0 0 120 120" fill="none" style="width:100px;height:100px">
@@ -72,6 +72,16 @@
           <span style="font-size:12px;color:var(--muted)">
             共 <span style="color:var(--accent)">{{ totalCount }}</span> 个结果
           </span>
+        </div>
+
+        <!-- Error sources -->
+        <div v-if="errors.length" class="search-errors">
+          <div v-for="err in errors" :key="err.source" class="search-error-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>{{ err.source }} 搜索失败</span>
+          </div>
         </div>
 
         <div v-for="g in groups" :key="g.source.id" style="margin-bottom:24px">
@@ -114,6 +124,7 @@ const route = useRoute()
 const router = useRouter()
 const loading = ref(false)
 const groups = ref([])
+const errors = ref([])
 const query = ref('')
 const searchInput = ref('')
 
@@ -127,7 +138,7 @@ onMounted(() => {
 watch(() => route.query.q, (v) => {
   searchInput.value = v || ''
   if (v) search()
-  else { groups.value = []; query.value = '' }
+  else { groups.value = []; errors.value = []; query.value = '' }
 })
 
 async function doSearch() {
@@ -141,8 +152,14 @@ async function search() {
   query.value = route.query.q || ''
   if (!query.value) return
   loading.value = true
-  try { groups.value = await api.searchAll(query.value) }
-  catch { groups.value = [] }
+  try {
+    const result = await api.searchAll(query.value)
+    groups.value = result.groups
+    errors.value = result.errors
+  } catch {
+    groups.value = []
+    errors.value = []
+  }
   loading.value = false
 }
 
@@ -150,7 +167,3 @@ function open(srcId, item) {
   router.push({ name: 'detail', params: { source: srcId, id: item.id } })
 }
 </script>
-
-<style scoped>
-.history-tag-wrap:hover .del-btn { opacity: 1 !important; }
-</style>

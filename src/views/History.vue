@@ -33,7 +33,12 @@
             {{ h.episodeName || episodeLabel(h.episode) }}
           </p>
         </div>
-        <div class="hist-time">{{ timeAgo(h.ts) }}</div>
+        <span class="hist-time">{{ timeAgo(h.ts) }}</span>
+        <button class="hist-del-btn" @click.stop="removeHist(h)" title="删除">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
     </div>
 
@@ -66,6 +71,15 @@ function episodeLabel(ep) {
 
 function goPlay(h) {
   router.push({ name: 'play', params: { source: h.sourceId, id: h.vodId, episode: h.episode || 0 } })
+}
+
+function removeHist(h) {
+  const key = `${h.sourceId}:${h.vodId}`
+  const idx = store.history.findIndex(item => `${item.sourceId}:${item.vodId}` === key)
+  if (idx !== -1) {
+    store.history.splice(idx, 1)
+    try { localStorage.setItem('cm_history', JSON.stringify(store.history)) } catch {}
+  }
 }
 
 function doClear() {

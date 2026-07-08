@@ -35,9 +35,7 @@ async function request(source, params = {}) {
 
 function parseResponse(text) {
   const trimmed = text.trim()
-  // Try plain JSON first
   try { return JSON.parse(trimmed) } catch {}
-  // Try stripping JSONP wrapper: callback({...})
   const m = trimmed.match(/^\w+\s*\(\s*([\s\S]+)\s*\)\s*;?\s*$/)
   if (m) {
     try { return JSON.parse(m[1]) } catch {}
@@ -84,8 +82,6 @@ function normDetail(data) {
 
 function parseEpisodes(str) {
   if (!str) return []
-  // Handle multi-group episodes: group1$$$group2
-  // Each group has episodes separated by #
   const groups = str.split('$$$')
   const firstGroup = groups[0] || str
   return firstGroup.split('#').filter(Boolean).map(ep => {
@@ -121,15 +117,22 @@ export const api = {
 
   async searchAll(keyword) {
     const sources = store.enabledSources
-    if (!sources.length) return []
+    if (!sources.length) return { groups: [], errors: [] }
     const results = await Promise.allSettled(
       sources.map(async src => {
         const res = await api.list(src, { wd: keyword })
         return { source: src, list: res.list }
       })
     )
-    return results
-      .filter(r => r.status === 'fulfilled')
-      .map(r => r.value)
+    const groups = []
+    const errors = []
+    results.forEach((r, i) => {
+      if (r.status === 'fulfilled') {
+        groups.push(r.value)
+      } else {
+        errors.push({ source: sources[i].name, error: r.reason?.message || '请求失败' })
+      }
+    })
+    return { groups, errors }
   },
 }

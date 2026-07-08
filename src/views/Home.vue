@@ -11,7 +11,8 @@
 
     <template v-else>
       <!-- Hero Banner -->
-      <div class="hero" v-if="heroList.length">
+      <div class="hero" v-if="heroList.length"
+        @mouseenter="pauseHero" @mouseleave="resumeHero">
         <div v-for="(item, i) in heroList" :key="item.id" class="hero-slide" :class="{ active: heroIdx === i }">
           <img class="hero-bg" :src="poster(item.pic)" :alt="item.name" referrerpolicy="no-referrer" @error="safeImgError" />
           <div class="hero-overlay"></div>
@@ -213,6 +214,7 @@ const srcId = ref('')
 const activeTab = ref('home')
 const showAllCats = ref(false)
 const maxCats = 8
+const heroPaused = ref(false)
 
 const visibleCats = computed(() => cats.value.slice(0, maxCats))
 const continueWatch = computed(() => store.history.slice(0, 5))
@@ -282,8 +284,13 @@ async function load() {
 function startHeroTimer() {
   if (heroTimer) clearInterval(heroTimer)
   if (heroList.value.length <= 1) return
-  heroTimer = setInterval(() => { heroIdx.value = (heroIdx.value + 1) % heroList.value.length }, 5000)
+  heroTimer = setInterval(() => {
+    if (!heroPaused.value) heroIdx.value = (heroIdx.value + 1) % heroList.value.length
+  }, 5000)
 }
+
+function pauseHero() { heroPaused.value = true }
+function resumeHero() { heroPaused.value = false }
 
 function pickCat(id) { activeCat.value = id; pg.value = 1; load() }
 function onSourceChange() { pg.value = 1; activeCat.value = null; boot() }

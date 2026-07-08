@@ -34,6 +34,15 @@
       暂无可用播放地址
     </div>
 
+    <!-- Auto-next notification -->
+    <Transition name="toast">
+      <div v-if="showAutoNext" class="auto-next-toast">
+        <span>即将播放下一集...</span>
+        <button class="btn" @click="showAutoNext = false" style="padding:4px 10px;font-size:11px">取消</button>
+        <button class="btn btn-primary" @click="playNext" style="padding:4px 10px;font-size:11px">立即播放</button>
+      </div>
+    </Transition>
+
     <!-- Keyboard shortcuts hint - desktop only -->
     <div class="player-shortcuts player-shortcuts-desktop">
       <span>
@@ -75,9 +84,12 @@ const detail = ref(null)
 const curIdx = ref(0)
 const autoNext = ref(true)
 const iframeRef = ref(null)
+const showAutoNext = ref(false)
+let autoNextTimer = null
 
 const curEp = computed(() => detail.value?.episodes?.[curIdx.value])
 const iframeSrc = computed(() => curEp.value?.url || '')
+const hasNext = computed(() => detail.value?.episodes && curIdx.value < detail.value.episodes.length - 1)
 
 onMounted(async () => {
   curIdx.value = Math.max(0, parseInt(route.params.episode) || 0)
@@ -87,6 +99,49 @@ onMounted(async () => {
     detail.value = await api.detail(s, route.params.id)
     saveHistory()
   } catch { detail.value = null }
+})
+
+// Listen for iframe messages (some players send postMessage on video end)
+function onMessage(e) {
+  if (!autoNext.value || !hasNext.value) return
+  try {
+    const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data
+    if (data?.event === 'ended' || data?.type === 'ended' || data?.event === 'complete') {
+      triggerAutoNext()
+    }
+  } catch {}
+}
+
+// Fallback: auto-next after a long period (10 minutes) as heuristic
+function startAutoNextTimer() {
+  clearTimeout(autoNextTimer)
+  if (autoNext.value && hasNext.value) {
+    autoNextTimer = setTimeout(() => {
+      if (autoNext.value && hasNext.value) triggerAutoNext()
+    }, 600000) // 10 minutes
+  }
+}
+
+function triggerAutoNext() {
+  if (!autoNext.value || !hasNext.value) return
+  showAutoNext.value = true
+  setTimeout(() => { showAutoNext.value = false }, 8000)
+}
+
+function playNext() {
+  showAutoNext.value = false
+  if (hasNext.value) switchEp(curIdx.value + 1)
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  window.addEventListener('message', onMessage)
+  startAutoNextTimer()
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  window.removeEventListener('message', onMessage)
+  clearTimeout(autoNextTimer)
 })
 
 // Keyboard shortcuts
@@ -111,12 +166,11 @@ function onKeydown(e) {
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onUnmounted(() => window.removeEventListener('keydown', onKeydown))
-
 watch(() => route.params.episode, v => {
   curIdx.value = Math.max(0, parseInt(v) || 0)
   saveHistory()
+  showAutoNext.value = false
+  startAutoNextTimer()
 })
 
 function switchEp(i) {
