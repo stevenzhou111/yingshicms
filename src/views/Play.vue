@@ -2,7 +2,7 @@
   <div class="player-wrap">
     <div class="player-top">
       <router-link :to="{ name: 'detail', params: { source: $route.params.source, id: $route.params.id } }"
-        class="btn btn-ghost">
+        class="btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
           <path d="M19 12H5M12 19l-7-7 7-7" />
         </svg>
@@ -12,7 +12,6 @@
         {{ detail?.name || '加载中...' }}
       </h2>
       <span v-if="curEp" class="tag tag-accent">{{ curEp.name }}</span>
-      <!-- Share buttons -->
       <button class="btn" @click="copyLink" title="复制链接">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
           <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
@@ -31,12 +30,12 @@
     <div v-if="iframeSrc" class="player-frame">
       <iframe ref="iframeRef" :src="iframeSrc" allowfullscreen allow="autoplay; fullscreen; picture-in-picture"></iframe>
     </div>
-    <div v-else class="player-frame" style="display:flex;align-items:center;justify-content:center;color:var(--c-muted);font-size:14px">
+    <div v-else class="player-frame" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px">
       暂无可用播放地址
     </div>
 
-    <!-- Keyboard shortcuts hint -->
-    <div class="player-shortcuts">
+    <!-- Keyboard shortcuts hint - desktop only -->
+    <div class="player-shortcuts player-shortcuts-desktop">
       <span>
         <kbd>←</kbd> <kbd>→</kbd> 切集
         <span style="margin:0 6px">·</span>
@@ -48,9 +47,9 @@
 
     <div v-if="detail?.episodes.length" class="ep-selector">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <h3 style="font-size:13px;font-weight:500;color:var(--c-text2)">选集播放</h3>
-        <label style="font-size:12px;color:var(--c-text2);display:flex;align-items:center;gap:4px;cursor:pointer">
-          <input type="checkbox" v-model="autoNext" style="accent-color:var(--c-accent)" /> 自动连播
+        <h3 style="font-size:13px;font-weight:500;color:var(--text2)">选集播放</h3>
+        <label style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:4px;cursor:pointer">
+          <input type="checkbox" v-model="autoNext" style="accent-color:var(--accent)" /> 自动连播
         </label>
       </div>
       <div class="ep-grid">
@@ -145,7 +144,6 @@ async function copyToClipboard(text) {
     await navigator.clipboard.writeText(text)
     toast('已复制到剪贴板', 'success')
   } catch {
-    // Fallback: create a temporary textarea
     try {
       const ta = document.createElement('textarea')
       ta.value = text

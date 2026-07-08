@@ -3,7 +3,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
       <h2 style="font-size:18px;font-weight:600">播放历史</h2>
       <div style="display:flex;gap:8px;align-items:center">
-        <span v-if="store.history.length" style="font-size:12px;color:var(--c-muted)">
+        <span v-if="store.history.length" style="font-size:12px;color:var(--muted)">
           共 {{ store.history.length }} 条
         </span>
         <button v-if="store.history.length" class="btn btn-danger" @click="confirmClear = true">清空历史</button>
@@ -30,7 +30,7 @@
             <span v-if="h.sourceName" class="tag tag-accent" style="margin-right:4px;padding:1px 6px;font-size:10px">
               {{ h.sourceName }}
             </span>
-            {{ h.episodeName || '第' + (h.episode + 1) + '集' }}
+            {{ h.episodeName || episodeLabel(h.episode) }}
           </p>
         </div>
         <div class="hist-time">{{ timeAgo(h.ts) }}</div>
@@ -58,6 +58,11 @@ import { poster, safeImgError, timeAgo } from '../utils/helpers.js'
 
 const router = useRouter()
 const confirmClear = ref(false)
+
+function episodeLabel(ep) {
+  if (ep == null || isNaN(ep)) return '未知集数'
+  return '第' + (ep + 1) + '集'
+}
 
 function goPlay(h) {
   router.push({ name: 'play', params: { source: h.sourceId, id: h.vodId, episode: h.episode || 0 } })

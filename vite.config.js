@@ -6,7 +6,7 @@ export default defineConfig({
   build: { outDir: 'dist' },
   server: {
     proxy: {
-      '/api/proxy': 'http://localhost:5173',
+      '/api/proxy': 'http://localhost:3000',
     },
   },
 })

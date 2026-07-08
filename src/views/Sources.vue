@@ -41,19 +41,19 @@
     </div>
 
     <!-- Batch toolbar -->
-    <div v-if="store.sources.length" class="batch-bar" :class="{ show: selected.size > 0 }">
+    <div v-if="store.sources.length && selected.size > 0" class="batch-bar">
       <label class="batch-check" @click.stop>
         <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
         <span>全选</span>
       </label>
-      <span v-if="selected.size" style="font-size:12px;color:var(--c-text2)">
+      <span style="font-size:12px;color:var(--text2)">
         已选 {{ selected.size }} 项
       </span>
-      <div v-if="selected.size" class="batch-actions">
+      <div class="batch-actions">
         <button class="btn" @click="batchEnable">启用</button>
         <button class="btn" @click="batchDisable">禁用</button>
         <button class="btn btn-danger" @click="showBatchDel = true">删除</button>
-        <button class="btn btn-ghost" @click="selected.clear()">取消</button>
+        <button class="text-btn" @click="selected.clear()">取消</button>
       </div>
     </div>
 
@@ -64,7 +64,7 @@
       </svg>
       <input v-model="filterText" placeholder="搜索源名称或API地址..." />
       <span v-if="filterText" class="src-filter-clear" @click="filterText = ''">✕</span>
-      <span v-if="filterText" style="font-size:11px;color:var(--c-muted);flex-shrink:0">
+      <span v-if="filterText" style="font-size:11px;color:var(--muted);flex-shrink:0">
         {{ filtered.length }}/{{ store.sources.length }}
       </span>
     </div>
@@ -92,7 +92,7 @@
     </div>
 
     <!-- Stats -->
-    <div v-if="store.sources.length" style="margin-top:16px;font-size:11px;color:var(--c-muted);text-align:center">
+    <div v-if="store.sources.length" style="margin-top:16px;font-size:11px;color:var(--muted);text-align:center">
       共 {{ store.sources.length }} 个源 · {{ store.enabledSources.length }} 个启用
       <template v-if="filterText"> · 当前显示 {{ filtered.length }} 个</template>
     </div>
@@ -152,9 +152,9 @@
       <div class="modal" style="max-width:540px">
         <h2>导入数据源</h2>
 
-        <div class="tabs" style="margin-bottom:14px">
-          <button class="tab-pill" :class="{ on: importMode === 'json' }" @click="importMode = 'json'">JSON格式</button>
-          <button class="tab-pill" :class="{ on: importMode === 'urls' }" @click="importMode = 'urls'">URL列表</button>
+        <div class="src-tabs" style="margin-bottom:14px">
+          <button class="src-tab-pill" :class="{ on: importMode === 'json' }" @click="importMode = 'json'">JSON格式</button>
+          <button class="src-tab-pill" :class="{ on: importMode === 'urls' }" @click="importMode = 'urls'">URL列表</button>
         </div>
 
         <div v-if="importMode === 'json'" class="field">
@@ -221,10 +221,9 @@ const filtered = computed(() => {
 function highlight(text) {
   if (!filterText.value.trim()) return text
   const q = filterText.value.trim()
-  // Escape HTML entities first to prevent XSS
   const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
   const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
-  return escaped.replace(regex, '<mark style="background:rgba(99,102,241,.25);color:var(--c-text);border-radius:2px;padding:0 1px">$1</mark>')
+  return escaped.replace(regex, '<mark style="background:rgba(99,102,241,.25);color:var(--text);border-radius:2px;padding:0 1px">$1</mark>')
 }
 
 // ---- Selection ----
@@ -329,7 +328,6 @@ function doImport() {
       return
     }
   } else {
-    // URL list mode
     const lines = raw.split('\n').map(l => l.trim()).filter(Boolean)
     list = lines.map(url => ({ api: url }))
   }
@@ -355,6 +353,16 @@ function doExport() {
 
 function copyExport() {
   navigator.clipboard.writeText(exportText.value).then(() => {
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  }).catch(() => {
+    const ta = document.createElement('textarea')
+    ta.value = exportText.value
+    ta.style.cssText = 'position:fixed;left:-9999px'
+    document.body.appendChild(ta)
+    ta.select()
+    document.execCommand('copy')
+    ta.remove()
     copied.value = true
     setTimeout(() => { copied.value = false }, 2000)
   })

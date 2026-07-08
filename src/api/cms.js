@@ -84,7 +84,11 @@ function normDetail(data) {
 
 function parseEpisodes(str) {
   if (!str) return []
-  return str.split('#').filter(Boolean).map(ep => {
+  // Handle multi-group episodes: group1$$$group2
+  // Each group has episodes separated by #
+  const groups = str.split('$$$')
+  const firstGroup = groups[0] || str
+  return firstGroup.split('#').filter(Boolean).map(ep => {
     const i = ep.indexOf('$')
     return i === -1
       ? { name: ep.trim(), url: '' }
